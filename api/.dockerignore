@@ -1,0 +1,12 @@
+node_modules
+npm-debug.log
+dist
+.vscode
+.env.sample
+.eslintrc.js
+.gitignore
+.prettierrc
+db.sql
+README.md
+client
+test

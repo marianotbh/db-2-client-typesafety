@@ -1,0 +1,22 @@
+directive @specifiedBy(url: String!) on SCALAR
+input AddTodoDTO {
+  title: String!
+  description: String!
+}
+
+type Mutation {
+  createTodo(input: AddTodoDTO!): TodoDTO!
+}
+
+type Query {
+  getTodos(skip: Int = 0, take: Int = 10): [TodoDTO!]!
+  findTodo(id: String!): TodoDTO
+}
+
+type TodoDTO {
+  id: String!
+  title: String!
+  description: String!
+  isComplete: Boolean!
+}
+
