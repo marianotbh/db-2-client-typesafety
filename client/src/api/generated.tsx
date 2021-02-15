@@ -90,6 +90,18 @@ export type TodoId = {
   id: Scalars['String']
 }
 
+export type Subscription = {
+  __typename?: 'Subscription'
+  onTodoAdded: TodoAddedNotification
+}
+
+export type TodoAddedNotification = {
+  __typename?: 'TodoAddedNotification'
+  message: Scalars['String']
+  payload: Todo
+  date: Scalars['DateTime']
+}
+
 export type FindTodoQueryVariables = Exact<{
   id: Scalars['String']
 }>
@@ -163,6 +175,15 @@ export type DeleteTodoMutationVariables = Exact<{
 
 export type DeleteTodoMutation = {__typename?: 'Mutation'} & {
   deleteTodo: {__typename?: 'TodoId'} & Pick<TodoId, 'id'>
+}
+
+export type OnTodoAddedSubscriptionVariables = Exact<{[key: string]: never}>
+
+export type OnTodoAddedSubscription = {__typename?: 'Subscription'} & {
+  onTodoAdded: {__typename?: 'TodoAddedNotification'} & Pick<
+    TodoAddedNotification,
+    'message' | 'date'
+  > & {payload: {__typename?: 'Todo'} & Pick<Todo, 'id'>}
 }
 
 export const FindTodoDocument = gql`
@@ -481,3 +502,45 @@ export type DeleteTodoMutationOptions = Apollo.BaseMutationOptions<
   DeleteTodoMutation,
   DeleteTodoMutationVariables
 >
+export const OnTodoAddedDocument = gql`
+  subscription OnTodoAdded {
+    onTodoAdded {
+      message
+      payload {
+        id
+      }
+      date
+    }
+  }
+`
+
+/**
+ * __useOnTodoAddedSubscription__
+ *
+ * To run a query within a React component, call `useOnTodoAddedSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useOnTodoAddedSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useOnTodoAddedSubscription({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useOnTodoAddedSubscription(
+  baseOptions?: Apollo.SubscriptionHookOptions<
+    OnTodoAddedSubscription,
+    OnTodoAddedSubscriptionVariables
+  >
+) {
+  return Apollo.useSubscription<
+    OnTodoAddedSubscription,
+    OnTodoAddedSubscriptionVariables
+  >(OnTodoAddedDocument, baseOptions)
+}
+export type OnTodoAddedSubscriptionHookResult = ReturnType<
+  typeof useOnTodoAddedSubscription
+>
+export type OnTodoAddedSubscriptionResult = Apollo.SubscriptionResult<OnTodoAddedSubscription>

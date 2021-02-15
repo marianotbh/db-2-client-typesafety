@@ -1,10 +1,22 @@
-import {Arg, Args, Mutation, Query, Resolver} from 'type-graphql'
+import {
+  Arg,
+  Args,
+  Mutation,
+  Publisher,
+  PubSub,
+  Query,
+  Resolver,
+  Root,
+  Subscription
+} from 'type-graphql'
 import {plainToClass} from 'class-transformer'
-import {Todo} from '../dtos/todos/todo.dto'
-import {Todos} from '../dtos/todos/todos.dto'
-import {AddTodoInput} from '../dtos/todos/add-todo.dto'
-import {GetTodosArgs} from '../dtos/todos/get-todos.dto'
-import {EditTodoInput} from '../dtos/todos/edit-todo.dto'
+import {Todo} from '../dtos/todos/todo.type'
+import {Todos} from '../dtos/todos/todos.type'
+import {AddTodoInput} from '../dtos/todos/add-todo.input'
+import {GetTodosArgs} from '../dtos/todos/get-todos.args'
+import {EditTodoInput} from '../dtos/todos/edit-todo.input'
+import {TodoId} from '../dtos/todos/todo-id.type'
+import {TodoAddedNotification} from '../dtos/todos/added-todo.notification'
 import {
   addTodo,
   deleteTodo,
@@ -13,7 +25,6 @@ import {
   getTodos,
   toggleTodo
 } from '../services/todos.service'
-import {TodoId} from '../dtos/todos/todo-id.dto'
 
 @Resolver(Todo)
 export class TodosResolver {
@@ -32,24 +43,30 @@ export class TodosResolver {
   }
 
   @Mutation(() => Todo)
-  async addTodo(@Arg('input') {title, description}: AddTodoInput) {
-    const todo = await addTodo(title, description)
+  async addTodo(
+    @Arg('input') {title, description}: AddTodoInput,
+    @PubSub('TODOS') pubsub: Publisher<Todo>
+  ) {
+    const result = await addTodo(title, description)
+    const todo = plainToClass(Todo, result)
 
-    return plainToClass(Todo, todo)
+    await pubsub(todo)
+
+    return todo
   }
 
   @Mutation(() => Todo)
   async toggleTodo(@Arg('id') id: string) {
-    const todo = await toggleTodo(id)
+    const result = await toggleTodo(id)
 
-    return plainToClass(Todo, todo)
+    return plainToClass(Todo, result)
   }
 
   @Mutation(() => Todo)
   async editTodo(@Arg('input') {id, title, description}: EditTodoInput) {
-    const todo = await editTodo(id, title, description)
+    const result = await editTodo(id, title, description)
 
-    return plainToClass(Todo, todo)
+    return plainToClass(Todo, result)
   }
 
   @Mutation(() => TodoId)
@@ -57,5 +74,14 @@ export class TodosResolver {
     await deleteTodo(id)
 
     return plainToClass(TodoId, {id})
+  }
+
+  @Subscription({topics: 'TODOS'})
+  onTodoAdded(@Root() payload: Todo): TodoAddedNotification {
+    return {
+      message: `Todo ${payload.title} was created`,
+      payload,
+      date: new Date()
+    }
   }
 }

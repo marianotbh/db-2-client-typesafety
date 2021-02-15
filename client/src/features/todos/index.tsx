@@ -8,6 +8,7 @@ import {
   useDeleteTodoMutation,
   useFindTodoLazyQuery,
   useListTodosQuery,
+  useOnTodoAddedSubscription,
   useToggleTodoMutation
 } from '../../api'
 import TodoAdd, {Fields} from './components/TodoAdd'
@@ -31,10 +32,15 @@ export default function Todos() {
   })
   const [
     createTodo,
-    {loading: isCreating, data: createdTodo, error: createError}
+    {loading: isCreating, error: createError}
   ] = useAddTodoMutation()
   const [findTodo, {data: todo, loading: isFinding}] = useFindTodoLazyQuery()
-  const {data: todos, loading: isListing, error: getError} = useListTodosQuery({
+  const {
+    data: todos,
+    loading: isListing,
+    error: getError,
+    refetch
+  } = useListTodosQuery({
     variables: {
       skip: pageNumber * pageSize,
       take: pageSize,
@@ -43,6 +49,7 @@ export default function Todos() {
   })
   const [toggleTodo] = useToggleTodoMutation()
   const [deleteTodo, {data: deletedTodo}] = useDeleteTodoMutation()
+  const {data: addedTodo} = useOnTodoAddedSubscription()
 
   const handleSelectTodo = (id: string) => {
     findTodo({variables: {id}})
@@ -81,13 +88,11 @@ export default function Todos() {
   }
 
   useEffect(() => {
-    if (createdTodo)
-      toast.success(
-        <span>
-          todo <b>{createdTodo.addTodo.title}</b> created!
-        </span>
-      )
-  }, [createdTodo])
+    if (addedTodo) {
+      toast.success(addedTodo.onTodoAdded.message)
+      refetch()
+    }
+  }, [addedTodo, refetch])
 
   useEffect(() => {
     if (createError) toast.success(createError.message)

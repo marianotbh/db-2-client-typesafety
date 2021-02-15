@@ -54,3 +54,11 @@ mutation DeleteTodo($id: String!) {
     id
   }
 }
+
+subscription OnTodoAdded {
+  onTodoAdded {
+    message
+    payload {id}
+    date
+  }
+}
